@@ -1,17 +1,10 @@
-import React, { useState, useEffect } from "react";
 import { MdAddShoppingCart } from "react-icons/md";
-
 import { ProductList } from "./styles";
+import { useCart } from "../../hooks/useCart";
+import { useEffect, useState } from "react";
 import { api } from "../../services/api";
 import { formatPrice } from "../../util/format";
-import { useCart } from "../../hooks/useCart";
-
-interface Product {
-  id: number;
-  title: string;
-  price: number;
-  image: string;
-}
+import { Product } from "../../types";
 
 interface ProductFormatted extends Product {
   priceFormatted: string;
@@ -23,21 +16,22 @@ interface CartItemsAmount {
 
 const Home = (): JSX.Element => {
   const [products, setProducts] = useState<ProductFormatted[]>([]);
-  // const { addProduct, cart } = useCart();
+  const { addProduct, cart } = useCart();
 
-  // const cartItemsAmount = cart.reduce((sumAmount, product) => {
-  //   // TODO
-  // }, {} as CartItemsAmount)
+  const cartItemsAmount = cart.reduce((sumAmount, product) => {
+    // TODO
+    return { ...sumAmount, [product.id]: product.amount };
+  }, {} as CartItemsAmount);
 
   useEffect(() => {
     async function loadProducts() {
-      await api.get("/products").then((response) =>
-        setProducts(
-          response.data.map((product: ProductFormatted) => {
-            return { ...product, priceFormatte: formatPrice(product.price) };
-          })
-        )
-      );
+      await api.get("/products").then((response) => {
+        const productsFormatted = response.data.map((product: Product) => {
+          return { ...product, priceFormatted: formatPrice(product.price) };
+        });
+
+        setProducts(productsFormatted);
+      });
     }
 
     loadProducts();
@@ -45,6 +39,7 @@ const Home = (): JSX.Element => {
 
   function handleAddProduct(id: number) {
     // TODO
+    addProduct(id);
   }
 
   return (
@@ -58,11 +53,11 @@ const Home = (): JSX.Element => {
             <button
               type="button"
               data-testid="add-product-button"
-              // onClick={() => handleAddProduct(product.id)}
+              onClick={() => handleAddProduct(product.id)}
             >
               <div data-testid="cart-product-quantity">
                 <MdAddShoppingCart size={16} color="#FFF" />
-                {/* {cartItemsAmount[product.id] || 0} */} 2
+                {cartItemsAmount[product.id] || 0}
               </div>
 
               <span>ADICIONAR AO CARRINHO</span>
